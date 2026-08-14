@@ -4,11 +4,16 @@ import { defineTool } from '@deepseek-ai/dsh-tools'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
 import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
+import { settingsNamespace } from '@deepseek-ai/dsh-settings'
+import type {} from '@deepseek-ai/dsh-settings'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
 /** Cordis plugin name used by loader diagnostics and context attribution. */
 export const name = 'greeter'
+
+/** Durable-settings namespace owning the greeter configuration. */
+export const SETTINGS_NAMESPACE = settingsNamespace('greeter')
 
 /** Services this plugin needs before it can mount. */
 export const inject = ['agents', 'tools']
@@ -120,13 +125,26 @@ function greetingInstruction(userName: string | undefined, greetingIndex: number
 }
 
 export function apply(ctx: Context, config: Config): void {
-  const resolved: ResolvedConfig = {
-    ...(config.style !== undefined ? { style: config.style } : {}),
-    ...(config.language !== undefined ? { language: config.language } : {}),
-    greetings: config.greetings ?? [],
-    nameFile: config.nameFile ?? 'greeter-name.json',
+  // Expose the configuration as a durable, UI-editable settings section. The
+  // registered section overrides the cordis.yml `config` when both are set.
+  ctx.inject(['settings'], (settingsCtx) => {
+    settingsCtx.settings.register(SETTINGS_NAMESPACE, Config)
+  })
+
+  // Resolve the effective configuration fresh each use, so a settings write
+  // applies to the next session without a restart.
+  const effective = (): ResolvedConfig => {
+    const settings = ctx.get('settings')
+    const section = settings?.get(SETTINGS_NAMESPACE) as Partial<Config> | undefined
+    const merged: Config = { ...config, ...section }
+    return {
+      ...(merged.style !== undefined ? { style: merged.style } : {}),
+      ...(merged.language !== undefined ? { language: merged.language } : {}),
+      greetings: merged.greetings ?? [],
+      nameFile: merged.nameFile ?? 'greeter-name.json',
+    }
   }
-  const storeFile = join(resolveDshHome(), resolved.nameFile)
+  const storeFileOf = (resolved: ResolvedConfig): string => join(resolveDshHome(), resolved.nameFile)
 
   // Tool the model calls once the user reveals their name, so the next
   // session can greet them personally.
@@ -141,6 +159,7 @@ export function apply(ctx: Context, config: Config): void {
       render: (_args, value) => [{ type: 'text', text: value }],
     },
     async execute(args) {
+      const storeFile = storeFileOf(effective())
       writeStore(storeFile, { ...readStore(storeFile), name: args.name })
       return `Saved the user's name as ${args.name}.`
     },
@@ -155,6 +174,8 @@ export function apply(ctx: Context, config: Config): void {
     if (greeted.has(agent)) return decision
     greeted.add(agent)
 
+    const resolved = effective()
+    const storeFile = storeFileOf(resolved)
     const store = readStore(storeFile)
     const userName = store?.name
     const greetingIndex = store?.greetingIndex ?? 0

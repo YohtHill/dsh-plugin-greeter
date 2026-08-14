@@ -41,6 +41,7 @@
     "@deepseek-ai/dsh-agent": ">=0.1.0-rc.5",
     "@deepseek-ai/dsh-home-paths": ">=0.0.1-rc.3",
     "@deepseek-ai/dsh-llm": ">=0.0.1-rc.1",
+    "@deepseek-ai/dsh-settings": ">=0.0.1-rc.1",
     "@deepseek-ai/schemastery": "^3.18.1",
     "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1"
   },
@@ -49,6 +50,7 @@
     "@deepseek-ai/dsh-agent": ">=0.1.0-rc.6",
     "@deepseek-ai/dsh-home-paths": ">=0.0.1-rc.3",
     "@deepseek-ai/dsh-llm": ">=0.0.1-rc.1",
+    "@deepseek-ai/dsh-settings": ">=0.0.1-rc.1",
     "@deepseek-ai/schemastery": "^3.18.1",
     "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1",
     "@types/node": "^22.0.0",
