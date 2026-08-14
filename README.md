@@ -1,10 +1,14 @@
 # dsh-plugin-greeter
 
-A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plugin that greets you at the start of every session:
+A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plugin that greets you at the start of every session — and remembers your name so every greeting feels personal.
 
-- **First session** — opens with a friendly greeting and asks for your name.
-- **Remembers your name** — once you tell it, the model calls the `remember_name` tool and the name is stored in your dsh home (`~/.dsh/greeter-name.json`).
-- **Every session after** — greets you **by name**, with **different wording each time**.
+**English** | [中文](README.zh.md)
+
+## Features
+
+- 👋 **Greets every session** — the assistant opens with a friendly greeting, with **different wording each time** (the model generates varied phrasing, so it never repeats verbatim).
+- 🧑 **Learns your name** — on the first session it asks for your name, then persists it via the `remember_name` tool.
+- 💾 **Remembers across sessions** — the name is stored in your dsh home (`~/.dsh/greeter-name.json`), so later sessions greet you **by name**.
 
 ## Install
 
@@ -14,14 +18,14 @@ Once published to npm:
 dsh plugin --profile web add dsh-plugin-greeter
 ```
 
-The package declares `dsh.bundle.patch`, so `dsh plugin add` recognizes it as a bundle layer and it becomes part of the profile's patch stack automatically.
+The package declares `dsh.bundle.patch`, so `dsh plugin add` recognizes it as a bundle layer and it becomes part of the profile's patch stack automatically — no manual configuration required.
 
 ## Development (local, no publish needed)
 
-From this repository checkout, mount it as an overlay on any profile:
+From a DeepSeek Harness checkout, mount it as an overlay on any profile:
 
 ```sh
-pnpm dsh web --patch ./path/to/cordis.patch.yml
+pnpm dsh web --patch /path/to/dsh-plugin-greeter/cordis.patch.yml
 ```
 
 Or point the patch at your local source while iterating:
@@ -43,17 +47,19 @@ npm run build    # emits lib/ (JS + type declarations)
 
 ## How it works
 
-- Registers a `remember_name` tool via `defineTool` that persists the user's name to `~/.dsh/greeter-name.json`.
+- Registers a `remember_name` tool via `defineTool`; the model calls it as soon as the user reveals their name, and the plugin persists it to `~/.dsh/greeter-name.json`.
 - Listens on the `agent/pre-step` waterfall and, on the first model step of each new session, injects a greeting instruction (context injection). The model then opens with varied, personal wording.
-- Configuration (optional):
+- The name file is read fresh on every session, so editing or deleting it takes effect immediately.
 
-  ```yaml
-  - insert:
-      - id: greeter
-        name: 'dsh-plugin-greeter'
-        config:
-          nameFile: 'my-name.json'   # custom storage filename in the dsh home
-  ```
+### Configuration (optional)
+
+```yaml
+- insert:
+    - id: greeter
+      name: 'dsh-plugin-greeter'
+      config:
+        nameFile: 'my-name.json'   # custom storage filename inside the dsh home
+```
 
 ## Publishing
 
@@ -67,3 +73,4 @@ Then add the **`dsh-plugin`** topic to your GitHub repository so the community c
 ## License
 
 MIT
+
