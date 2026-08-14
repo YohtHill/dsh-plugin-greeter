@@ -1,0 +1,7 @@
+# dsh-plugin-greeter bundle patch layer.
+# Inserted as the profile's own layer when installed via `dsh plugin add`.
+# The `name` is this package's own entry point, resolved from the profile's
+# node_modules where pnpm installs the bundle.
+- insert:
+    - id: greeter
+      name: 'dsh-plugin-greeter'
