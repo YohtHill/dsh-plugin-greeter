@@ -48,7 +48,7 @@ npm run build    # emits lib/ (JS + type declarations)
 ## How it works
 
 - Registers a `remember_name` tool via `defineTool`; the model calls it as soon as the user reveals their name, and the plugin persists it to the store file.
-- Listens on the `agent/pre-step` waterfall and, on the first model step of each new session, injects a greeting instruction (context injection).
+- Listens on the `agent/pre-step` waterfall and, on the first model step of each new session, injects a greeting instruction (context injection). Each session picks a **random tone cue** (playful, sincere, punchy, …), so the greeting differs even for identical user input.
 - The store file is read fresh on every session, so editing or deleting it takes effect immediately.
 
 ### Configuration (optional)

@@ -58,25 +58,46 @@ function writeStore(file: string, data: Store): void {
   writeFileSync(file, JSON.stringify(data, null, 2))
 }
 
+/** Per-session variation cues so every greeting differs even for identical user input. */
+const GREETING_ANGLES = [
+  'casual and playful',
+  'warm and enthusiastic',
+  'short and punchy',
+  'curious — ask what they are working on today',
+  'bright, upbeat morning energy',
+  'with a light pun or playful wordplay',
+  'calm and relaxed',
+  'motivational and energetic',
+  'simple and sincere',
+  'cheeky and fun',
+] as const
+
+/** Pick a random variation cue for this session's greeting. */
+function pickGreetingAngle(): string {
+  return GREETING_ANGLES[Math.floor(Math.random() * GREETING_ANGLES.length)]!
+}
+
 /**
  * Build the greeting instruction injected on the first step of a new session.
  * With a stored name and a configured pool, the exact phrase is chosen by
  * rotation; otherwise the model improvises a fresh greeting each session,
- * mirroring the language the user writes in (unless a fixed `language` is set).
+ * mirroring the language the user writes in (unless a fixed `language` is set)
+ * and seeded with a random tone so the output differs even for identical input.
  */
 function greetingInstruction(userName: string | undefined, greetingIndex: number, config: ResolvedConfig): string {
   const languageHint = config.language
     ? ` Greet in ${config.language}.`
     : ' Greet in the same language the user is using.'
+  const angle = pickGreetingAngle()
   if (userName === undefined) {
-    return `You are opening a new session. Start with a short, friendly greeting${config.language ? ` in ${config.language}` : ' in the same language as the user'}, then ask the user for their name. Once they tell you, call the \`remember_name\` tool to store it for future sessions.`
+    return `You are opening a new session. Start with a short, friendly greeting${config.language ? ` in ${config.language}` : ' in the same language as the user'} that is ${angle} in tone, then ask the user for their name. Once they tell you, call the \`remember_name\` tool to store it for future sessions.`
   }
   if (config.greetings.length > 0) {
     const template = config.greetings[greetingIndex % config.greetings.length]!
     const greeting = template.replaceAll('{name}', userName)
     return `Open this session by delivering exactly this greeting to the user ${userName}: "${greeting}"`
   }
-  return `You are opening a new session for the user ${userName}. Start with a short, friendly greeting addressed to ${userName}.${languageHint} Keep it natural and conversational — improvise a fresh greeting each session, varying the wording, tone, and phrasing so it never repeats.`
+  return `You are opening a new session for the user ${userName}. Start with a short, friendly greeting addressed to ${userName}.${languageHint} Make it ${angle} in tone, and make the wording, structure, and opener clearly differ from a standard greeting — improvise something fresh that matches the angle.`
 }
 
 export function apply(ctx: Context, config: Config): void {
