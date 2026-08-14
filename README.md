@@ -47,9 +47,9 @@ npm run build    # emits lib/ (JS + type declarations)
 
 ## How it works
 
-- Registers a `remember_name` tool via `defineTool`; the model calls it as soon as the user reveals their name, and the plugin persists it to `~/.dsh/greeter-name.json`.
-- Listens on the `agent/pre-step` waterfall and, on the first model step of each new session, injects a greeting instruction (context injection). The model then opens with varied, personal wording.
-- The name file is read fresh on every session, so editing or deleting it takes effect immediately.
+- Registers a `remember_name` tool via `defineTool`; the model calls it as soon as the user reveals their name, and the plugin persists it to the store file.
+- Listens on the `agent/pre-step` waterfall and, on the first model step of each new session, injects a greeting instruction (context injection).
+- The store file is read fresh on every session, so editing or deleting it takes effect immediately.
 
 ### Configuration (optional)
 
@@ -58,8 +58,19 @@ npm run build    # emits lib/ (JS + type declarations)
     - id: greeter
       name: 'dsh-plugin-greeter'
       config:
-        nameFile: 'my-name.json'   # custom storage filename inside the dsh home
+        language: zh              # greeting language; omit to let the model choose
+        greetings:                # custom phrase pool; one is picked per session
+          - '早上好，{name}！今天想让我帮你做什么？'
+          - '嗨，{name}，欢迎回来！👋'
+          - 'Hey {name} 👋 ready when you are.'
+        nameFile: 'my-name.json'  # custom storage filename inside the dsh home
 ```
+
+- `language` — when set (e.g. `zh`, `en`, `ja`), the model composes the greeting in that language, still varying the wording each session.
+- `greetings` — an explicit pool of greeting phrases; the plugin **rotates** through them so consecutive sessions never repeat. Use `{name}` as a placeholder for the user's name.
+- Both are optional; with neither, the model generates a varied greeting in the session's natural language.
+
+The config is validated with a Schemastery schema — invalid values **fail plugin load loudly** instead of being silently ignored.
 
 ## Publishing
 

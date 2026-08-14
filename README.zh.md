@@ -47,9 +47,9 @@ npm run build    # 生成 lib/（JS + 类型声明）
 
 ## 工作原理
 
-- 通过 `defineTool` 注册 `remember_name` 工具；用户一说出名字，模型就调用它，插件把名字写入 `~/.dsh/greeter-name.json`。
-- 监听 `agent/pre-step` 瀑布，在每次新会话的第一个模型步骤注入问候指令（上下文注入）。模型据此用变化、个性化的措辞开场。
-- 每次会话都会重新读取名字文件，因此直接编辑或删除它即可立即生效。
+- 通过 `defineTool` 注册 `remember_name` 工具；用户一说出名字，模型就调用它，插件把名字写入存储文件。
+- 监听 `agent/pre-step` 瀑布，在每次新会话的第一个模型步骤注入问候指令（上下文注入）。
+- 每次会话都会重新读取存储文件，因此直接编辑或删除它即可立即生效。
 
 ### 可选配置
 
@@ -58,8 +58,19 @@ npm run build    # 生成 lib/（JS + 类型声明）
     - id: greeter
       name: 'dsh-plugin-greeter'
       config:
-        nameFile: 'my-name.json'   # 自定义 dsh home 内的存储文件名
+        language: zh              # 问候语言；省略则让模型自行选择
+        greetings:                # 自定义问候语池；每次会话轮换选一句
+          - '早上好，{name}！今天想让我帮你做什么？'
+          - '嗨，{name}，欢迎回来！👋'
+          - 'Hey {name} 👋 ready when you are.'
+        nameFile: 'my-name.json'  # 自定义 dsh home 内的存储文件名
 ```
+
+- `language` — 设置后（如 `zh`、`en`、`ja`），模型会用该语言组织问候语，仍保证每次话术不同。
+- `greetings` — 显式的问候语池；插件会**轮换**选用，保证连续会话不重复。用 `{name}` 作为用户名的占位符。
+- 两者都可省略；都省略时，模型会用会话的自然语言生成变化问候语。
+
+配置会通过 Schemastery schema 校验——配置非法会**加载时立即报错**，而不是被静默忽略。
 
 ## 发布
 
