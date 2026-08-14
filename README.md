@@ -58,16 +58,17 @@ npm run build    # emits lib/ (JS + type declarations)
     - id: greeter
       name: 'dsh-plugin-greeter'
       config:
-        language: zh              # greeting language; omit to let the model choose
-        greetings:                # custom phrase pool; one is picked per session
+        style: engineering        # greeting tone: minimal | warm | practical | engineering | playful | calm
+        language: zh              # fixed greeting language (omit to mirror the user)
+        greetings:                # optional custom phrase pool (one picked per session)
           - '早上好，{name}！今天想让我帮你做什么？'
           - '嗨，{name}，欢迎回来！👋'
-          - 'Hey {name} 👋 ready when you are.'
         nameFile: 'my-name.json'  # custom storage filename inside the dsh home
 ```
 
-By default the greeting is **adaptive**: the model improvises fresh, conversational wording every session and mirrors the language you write in (English in → English greeting). The options below are optional overrides:
+By default the greeting is **adaptive**: the model improvises fresh, conversational wording every session, mirrors the language you write in (English in → English greeting), and draws a **random tone** each time. The options below are optional overrides:
 
+- `style` — fix the greeting tone: `minimal` (clean & short), `warm` (enthusiastic), `practical` (down to business), `engineering` (terse, technical, build-log vibe), `playful`, or `calm`. Omit for a random tone each session.
 - `language` — force a fixed greeting language (e.g. `zh`, `en`, `ja`) instead of mirroring the user.
 - `greetings` — an explicit pool of greeting phrases; the plugin **rotates** through them so consecutive sessions never repeat. Use `{name}` as a placeholder for the user's name.
 - `nameFile` — custom storage filename inside the dsh home.

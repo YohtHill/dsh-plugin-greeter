@@ -13,8 +13,14 @@ export const name = 'greeter'
 /** Services this plugin needs before it can mount. */
 export const inject = ['agents', 'tools']
 
+/** User-selectable greeting styles; omit to draw a random tone per session. */
+export const GREETING_STYLES = ['minimal', 'warm', 'practical', 'engineering', 'playful', 'calm'] as const
+export type GreetingStyle = (typeof GREETING_STYLES)[number]
+
 /** Plugin configuration accepted from cordis.yml. */
 export interface Config {
+  /** Fixed greeting style; omit to draw a random tone per session. */
+  style?: GreetingStyle
   /** Fixed greeting language, e.g. 'zh', 'en', 'ja'. Omit to mirror the language the user writes in. */
   language?: string
   /** Custom greeting phrases; one is chosen per session. Use {name} for the user's name. */
@@ -25,6 +31,7 @@ export interface Config {
 
 /** Schemastery validation for {@link Config}; invalid values fail plugin load. */
 export const Config: z<Config> = z.object({
+  style: z.union(GREETING_STYLES),
   language: z.string(),
   greetings: z.array(String),
   nameFile: z.string(),
@@ -32,6 +39,7 @@ export const Config: z<Config> = z.object({
 
 /** Configuration with defaults applied. */
 interface ResolvedConfig {
+  style?: GreetingStyle
   language?: string
   greetings: string[]
   nameFile: string
@@ -72,8 +80,19 @@ const GREETING_ANGLES = [
   'cheeky and fun',
 ] as const
 
-/** Pick a random variation cue for this session's greeting. */
-function pickGreetingAngle(): string {
+/** Tone instruction for each user-selectable greeting style. */
+const STYLE_PROMPTS: Record<GreetingStyle, string> = {
+  minimal: 'short, clean, and minimal — a single concise line, no fluff',
+  warm: 'warm and enthusiastic — friendly, upbeat, and energetic',
+  practical: 'practical and to the point — skip small talk and get straight to work',
+  engineering: 'minimalist, cool, and engineering-flavored — terse, technical, and precise, like a build log',
+  playful: 'casual and playful — fun and light, maybe with a light joke',
+  calm: 'calm and relaxed — gentle and unhurried',
+}
+
+/** Pick the tone for this session: the configured style, or a random cue. */
+function pickTone(config: ResolvedConfig): string {
+  if (config.style !== undefined) return STYLE_PROMPTS[config.style]
   return GREETING_ANGLES[Math.floor(Math.random() * GREETING_ANGLES.length)]!
 }
 
@@ -88,20 +107,21 @@ function greetingInstruction(userName: string | undefined, greetingIndex: number
   const languageHint = config.language
     ? ` Greet in ${config.language}.`
     : ' Greet in the same language the user is using.'
-  const angle = pickGreetingAngle()
+  const tone = pickTone(config)
   if (userName === undefined) {
-    return `You are opening a new session. Start with a short, friendly greeting${config.language ? ` in ${config.language}` : ' in the same language as the user'} that is ${angle} in tone, then ask the user for their name. Once they tell you, call the \`remember_name\` tool to store it for future sessions.`
+    return `You are opening a new session. Start with a short, friendly greeting${config.language ? ` in ${config.language}` : ' in the same language as the user'} that is ${tone} in tone, then ask the user for their name. Once they tell you, call the \`remember_name\` tool to store it for future sessions.`
   }
   if (config.greetings.length > 0) {
     const template = config.greetings[greetingIndex % config.greetings.length]!
     const greeting = template.replaceAll('{name}', userName)
     return `Open this session by delivering exactly this greeting to the user ${userName}: "${greeting}"`
   }
-  return `You are opening a new session for the user ${userName}. Start with a short, friendly greeting addressed to ${userName}.${languageHint} Make it ${angle} in tone, and make the wording, structure, and opener clearly differ from a standard greeting — improvise something fresh that matches the angle.`
+  return `You are opening a new session for the user ${userName}. Start with a short, friendly greeting addressed to ${userName}.${languageHint} Make it ${tone} in tone, and make the wording, structure, and opener clearly differ from a standard greeting — improvise something fresh that matches the tone.`
 }
 
 export function apply(ctx: Context, config: Config): void {
   const resolved: ResolvedConfig = {
+    ...(config.style !== undefined ? { style: config.style } : {}),
     ...(config.language !== undefined ? { language: config.language } : {}),
     greetings: config.greetings ?? [],
     nameFile: config.nameFile ?? 'greeter-name.json',

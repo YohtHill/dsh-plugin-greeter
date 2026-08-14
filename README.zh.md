@@ -58,16 +58,17 @@ npm run build    # 生成 lib/（JS + 类型声明）
     - id: greeter
       name: 'dsh-plugin-greeter'
       config:
-        language: zh              # 问候语言；省略则让模型自行选择
-        greetings:                # 自定义问候语池；每次会话轮换选一句
+        style: engineering        # 问候风格：minimal | warm | practical | engineering | playful | calm
+        language: zh              # 固定问候语言（省略则跟随用户）
+        greetings:                # 可选自定义问候语池（每次会话选一句）
           - '早上好，{name}！今天想让我帮你做什么？'
           - '嗨，{name}，欢迎回来！👋'
-          - 'Hey {name} 👋 ready when you are.'
         nameFile: 'my-name.json'  # 自定义 dsh home 内的存储文件名
 ```
 
-默认问候是**自适应**的：模型每次即兴生成自然、不重样的问候，并**跟随你输入的语言**（你打英文，问候就是英文）。以下配置项是可选的覆盖：
+默认问候是**自适应**的：模型每次即兴生成自然、不重样的问候，**跟随你输入的语言**（你打英文，问候就是英文），且每次都随机抽取一个**语气**。以下配置项是可选的覆盖：
 
+- `style` — 固定问候风格：`minimal`（简洁干净）、`warm`（热情洋溢）、`practical`（务实直接）、`engineering`（极简、技术感、build log 风）、`playful`（俏皮）、`calm`（平和）。省略则每次随机。
 - `language` — 强制固定问候语言（如 `zh`、`en`、`ja`），而非跟随用户。
 - `greetings` — 显式的问候语池；插件**轮换**选用，保证连续会话不重复。用 `{name}` 作为用户名的占位符。
 - `nameFile` — 自定义 dsh home 内的存储文件名。
