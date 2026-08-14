@@ -120,9 +120,9 @@ function greetingInstruction(userName: string | undefined, greetingIndex: number
   }
   if (config.greetings.length > 0) {
     const greeting = config.greetings[greetingIndex % config.greetings.length]!.replaceAll('{name}', userName)
-    return `New session for ${userName}. Deliver exactly this greeting: "${greeting}"`
+    return `New session for ${userName}. Deliver exactly this greeting: "${greeting}" (no tool calls)`
   }
-  return `New session for ${userName}. Greet them in ${lang}, ${tone} — short and fresh, not a standard greeting.`
+  return `New session for ${userName}. Greet them in ${lang}, ${tone} — short and fresh, not a standard greeting. No tool calls needed.`
 }
 
 export function apply(ctx: Context, config: Config): void {
