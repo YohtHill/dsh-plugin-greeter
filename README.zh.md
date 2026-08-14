@@ -12,13 +12,25 @@
 
 ## 安装
 
-发布到 npm 后：
+### 从 npm 安装（发布后）
 
 ```sh
 dsh plugin --profile web add dsh-plugin-greeter
 ```
 
 该包声明了 `dsh.bundle.patch`，因此 `dsh plugin add` 会自动将其识别为 bundle 补丁层并加入 profile 的补丁栈——无需手动配置。
+
+### 从源码安装（GitHub 克隆）
+
+仓库自带编译产物 `lib/`，克隆后可直接使用，无需本地构建：
+
+```sh
+git clone https://github.com/YohtHill/dsh-plugin-greeter.git
+cd dsh-plugin-greeter
+dsh plugin --profile web add .
+```
+
+> dsh 的核心包仍是 pre-1.0（`rc`）。如果你要自己构建源码，请用 `npm install --legacy-peer-deps`（npm 默认的 peer 解析会拒绝 `rc` 版本区间），然后 `npm run build` 再添加。
 
 ## 开发调试（本地，无需发布）
 
@@ -41,9 +53,11 @@ pnpm dsh web --patch /path/to/dsh-plugin-greeter/cordis.patch.yml
 ## 构建
 
 ```sh
-npm install
-npm run build    # 生成 lib/（JS + 类型声明）
+npm install --legacy-peer-deps   # dsh 核心包是 pre-1.0 (rc)，npm 需要这个参数
+npm run build                    # 生成 lib/（JS + 类型声明）
 ```
+
+`npm publish`（或 `npm pack`）会通过 `prepack` 自动重新构建。
 
 ## 工作原理
 

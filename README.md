@@ -12,13 +12,25 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 
 ## Install
 
-Once published to npm:
+### From npm (once published)
 
 ```sh
 dsh plugin --profile web add dsh-plugin-greeter
 ```
 
 The package declares `dsh.bundle.patch`, so `dsh plugin add` recognizes it as a bundle layer and it becomes part of the profile's patch stack automatically — no manual configuration required.
+
+### From source (GitHub clone)
+
+The repo ships its compiled output in `lib/`, so a fresh clone is usable without building:
+
+```sh
+git clone https://github.com/YohtHill/dsh-plugin-greeter.git
+cd dsh-plugin-greeter
+dsh plugin --profile web add .
+```
+
+> dsh's core packages are still pre-1.0 (`rc`). If you build from source yourself, use `npm install --legacy-peer-deps` (npm's default peer resolution rejects the `rc` ranges) and then `npm run build` before adding.
 
 ## Development (local, no publish needed)
 
@@ -41,9 +53,11 @@ Or point the patch at your local source while iterating:
 ## Build
 
 ```sh
-npm install
-npm run build    # emits lib/ (JS + type declarations)
+npm install --legacy-peer-deps   # dsh peer deps are pre-1.0 (rc); npm needs this flag
+npm run build                    # emits lib/ (JS + type declarations)
 ```
+
+`npm publish` (or `npm pack`) rebuilds automatically via `prepack`.
 
 ## How it works
 
