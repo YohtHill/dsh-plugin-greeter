@@ -113,19 +113,16 @@ function pickTone(config: ResolvedConfig): string {
  * and seeded with a random tone so the output differs even for identical input.
  */
 function greetingInstruction(userName: string | undefined, greetingIndex: number, config: ResolvedConfig): string {
-  const languageHint = config.language
-    ? ` Greet in ${config.language}.`
-    : ' Greet in the same language the user is using.'
   const tone = pickTone(config)
+  const lang = config.language ?? 'the user\'s language'
   if (userName === undefined) {
-    return `You are opening a new session. Start with a short, friendly greeting${config.language ? ` in ${config.language}` : ' in the same language as the user'} that is ${tone} in tone. Then make the very next line an explicit question asking for the user's name — make it impossible to miss (e.g. "And what should I call you?"). Do not move on to any task until you have asked. The moment they tell you their name, call the \`remember_name\` tool to store it for future sessions.`
+    return `New session. Greet in ${lang}, ${tone}. Then ask their name in the same message — don't start any task before asking. When they answer, call \`remember_name\` to store it.`
   }
   if (config.greetings.length > 0) {
-    const template = config.greetings[greetingIndex % config.greetings.length]!
-    const greeting = template.replaceAll('{name}', userName)
-    return `Open this session by delivering exactly this greeting to the user ${userName}: "${greeting}"`
+    const greeting = config.greetings[greetingIndex % config.greetings.length]!.replaceAll('{name}', userName)
+    return `New session for ${userName}. Deliver exactly this greeting: "${greeting}"`
   }
-  return `You are opening a new session for the user ${userName}. Start with a short, friendly greeting addressed to ${userName}.${languageHint} Make it ${tone} in tone, and make the wording, structure, and opener clearly differ from a standard greeting — improvise something fresh that matches the tone.`
+  return `New session for ${userName}. Greet them in ${lang}, ${tone} — short and fresh, not a standard greeting.`
 }
 
 export function apply(ctx: Context, config: Config): void {

@@ -128,6 +128,12 @@ The config is validated with a Schemastery schema — invalid values **fail plug
 
 This plugin hooks dsh's internal agent pipeline (`agent/pre-step` context injection and the message source format). It is verified against dsh `0.1.0-rc.5`-era builds; if dsh changes those internals the plugin may stop greeting until it is updated. The plugin itself carries **no bundled dependencies** — it uses whatever dsh already ships, so installing it adds nothing to your profile's dependency tree.
 
+## Token usage & cost
+
+The plugin's only recurring model cost is the **proactive greeting**: one short generation per new session (~130 output tokens). Its input (~8.6K tokens) is the shared system prompt, which dsh **prefix-caches across sessions** (≈99% cache hit), so the marginal cost is ≈ **$0.001 per session** with DeepSeek's cached-input pricing. Ordinary task turns cost exactly what any dsh session costs.
+
+To spend **zero** extra on greetings, set `proactive: false` — the greeting then rides on your first message at no additional cost. The greeting instruction itself is kept short (~50 tokens) to minimize overhead.
+
 ## Publishing
 
 ```sh
