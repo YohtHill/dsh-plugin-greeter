@@ -14,7 +14,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 
 ## Demo
 
-**Greets you every session** — fresh wording, your language, your saved style:
+**Greets you immediately** — open a new session and the agent greets you right away, no typing needed:
 
 ![Greeting at session start](docs/demo-greeting.gif)
 
