@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-greeter",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A DeepSeek Harness (dsh) plugin that greets the user at the start of every session with varied wording, learns their name on first use, and greets them personally afterward.",
   "keywords": [
     "dsh",
@@ -23,6 +23,7 @@
   "files": [
     "lib",
     "cordis.patch.yml",
+    "docs",
     "README.md",
     "README.zh.md"
   ],
