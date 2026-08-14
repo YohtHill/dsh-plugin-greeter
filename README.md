@@ -16,11 +16,11 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 
 **Greets you immediately** — open a new session and the agent greets you right away, no typing needed:
 
-![Greeting at session start](docs/demo-greeting.gif)
+![Greeting at session start](docs/demo-greeting.en.gif)
 
 **Switch styles by just asking** — say *"use a playful greeting from now on"* and the plugin saves it for you:
 
-![Switch style by chat](docs/demo-switch-style.png)
+![Switch style by chat](docs/demo-switch-style.en.png)
 
 ## Install
 
