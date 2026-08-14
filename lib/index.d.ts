@@ -19,6 +19,8 @@ export interface Config {
     greetings?: string[];
     /** File name (inside the dsh home) where the remembered name is stored. */
     nameFile?: string;
+    /** Greet proactively when a new session opens (no need to message first); default true. */
+    proactive?: boolean;
 }
 /** Schemastery validation for {@link Config}; invalid values fail plugin load. */
 export declare const Config: z<Config>;

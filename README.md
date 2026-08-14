@@ -9,6 +9,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 - 👋 **Greets every session** — a friendly greeting with **fresh wording every time**, in the **same language you use** (the model improvises, so it never repeats).
 - 🧑 **Learns your name** — on the first session it asks for your name, then persists it via the `remember_name` tool.
 - 💾 **Remembers across sessions** — the name is stored in your dsh home (`~/.dsh/greeter-name.json`), so later sessions greet you **by name**.
+- ✨ **Greets proactively** — opening a new session makes the agent greet you right away, **no first message needed**. (Set `proactive: false` to only greet after you send a message.)
 - 🎨 **Switch styles by just asking** — say *"greet me like an engineer"* or *"use a playful greeting"* and the plugin changes the style for you — no config editing, no restart.
 
 ## Demo
@@ -47,10 +48,11 @@ dsh plugin --profile web add .
 
 After installing, **restart dsh**, then:
 
-1. Start a **new session**.
-2. Send any message (e.g. `hi`).
-3. The model greets you in your language with a fresh tone each time, and on the first session it **asks your name** and remembers it via the `remember_name` tool.
-4. Later sessions greet you **by name**.
+1. Start a **new session** — the agent greets you immediately, no typing required.
+2. (Optional) send any message; the agent picks up from there.
+3. On the first session it **asks your name** and remembers it via the `remember_name` tool; later sessions greet you **by name**.
+
+> The proactive greeting runs one model call per new session. If you'd rather the agent only greet after your first message, set `proactive: false` (see Configuration).
 
 **Switching styles is a conversation.** In any session, just say:
 
@@ -118,6 +120,7 @@ By default the greeting is **adaptive**: the model improvises fresh, conversatio
 - `language` — force a fixed greeting language (e.g. `zh`, `en`, `ja`) instead of mirroring the user.
 - `greetings` — an explicit pool of greeting phrases; the plugin **rotates** through them so consecutive sessions never repeat. Use `{name}` as a placeholder for the user's name.
 - `nameFile` — custom storage filename inside the dsh home.
+- `proactive` — greet immediately when a new session opens (default `true`); set `false` to only greet after your first message.
 
 The config is validated with a Schemastery schema — invalid values **fail plugin load loudly** instead of being silently ignored.
 

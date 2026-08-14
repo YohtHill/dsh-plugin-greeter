@@ -32,6 +32,8 @@ export interface Config {
   greetings?: string[]
   /** File name (inside the dsh home) where the remembered name is stored. */
   nameFile?: string
+  /** Greet proactively when a new session opens (no need to message first); default true. */
+  proactive?: boolean
 }
 
 /** Schemastery validation for {@link Config}; invalid values fail plugin load. */
@@ -40,6 +42,7 @@ export const Config: z<Config> = z.object({
   language: z.string(),
   greetings: z.array(String),
   nameFile: z.string(),
+  proactive: z.boolean(),
 })
 
 /** Configuration with defaults applied. */
@@ -48,6 +51,7 @@ interface ResolvedConfig {
   language?: string
   greetings: string[]
   nameFile: string
+  proactive: boolean
 }
 
 /** Durable store content (name + greeting rotation position). */
@@ -142,6 +146,7 @@ export function apply(ctx: Context, config: Config): void {
       ...(merged.language !== undefined ? { language: merged.language } : {}),
       greetings: merged.greetings ?? [],
       nameFile: merged.nameFile ?? 'greeter-name.json',
+      proactive: merged.proactive ?? true,
     }
   }
   const storeFileOf = (resolved: ResolvedConfig): string => join(resolveDshHome(), resolved.nameFile)
@@ -196,15 +201,10 @@ export function apply(ctx: Context, config: Config): void {
     },
   }))
 
-  // Greet once per session: on the first model step of a new session, inject
-  // a greeting instruction so the model opens with the configured wording.
+  // One greeting message per agent: the instruction text as a plugin context
+  // injection, advancing the phrase-pool rotation for the next session.
   const greeted = new WeakSet<Agent>()
-  ctx.on('agent/pre-step', async ({ agent, step }, next): Promise<PreStepDecision> => {
-    const decision = await next()
-    if (decision.kind === 'reject' || step !== 1) return decision
-    if (greeted.has(agent)) return decision
-    greeted.add(agent)
-
+  const greetingMessage = (): ReturnType<typeof createUserMessage> => {
     const resolved = effective()
     const storeFile = storeFileOf(resolved)
     const store = readStore(storeFile)
@@ -215,15 +215,38 @@ export function apply(ctx: Context, config: Config): void {
       writeStore(storeFile, { ...store, name: userName, greetingIndex: (greetingIndex + 1) % resolved.greetings.length })
     }
     const text = greetingInstruction(userName, greetingIndex, resolved)
+    return createUserMessage({
+      content: [{ type: 'text', text }],
+      source: { kind: 'plugin', plugin: name, form: 'snapshot', sections: [{ name: 'greeter', text }] },
+    })
+  }
+
+  // Proactive greeting: when a brand-new session opens, enqueue the greeting as
+  // a follow-up so the agent wakes and greets without the user typing anything.
+  ctx.on('agent/session-start', ({ agent, source }) => {
+    if (source !== 'startup' || !effective().proactive) return
+    if (greeted.has(agent)) return
+    greeted.add(agent)
+    // Defer so the session-start announce unwinds before the driver wakes.
+    queueMicrotask(() => {
+      try {
+        agent.followup(greetingMessage())
+      } catch (error) {
+        ctx.logger.warn(`greeter: proactive greeting failed: ${String(error)}`)
+      }
+    })
+  })
+
+  // Fallback: greet on the first model step when the proactive path did not
+  // run (e.g. a resumed session), so every session still opens with a greeting.
+  ctx.on('agent/pre-step', async ({ agent, step }, next): Promise<PreStepDecision> => {
+    const decision = await next()
+    if (decision.kind === 'reject' || step !== 1) return decision
+    if (greeted.has(agent)) return decision
+    greeted.add(agent)
     return {
       kind: 'enter',
-      messages: [
-        ...decision.messages,
-        createUserMessage({
-          content: [{ type: 'text', text }],
-          source: { kind: 'plugin', plugin: name, form: 'snapshot', sections: [{ name: 'greeter', text }] },
-        }),
-      ],
+      messages: [...decision.messages, greetingMessage()],
     }
   }, { prepend: true })
 }
