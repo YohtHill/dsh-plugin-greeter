@@ -8,7 +8,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 
 - 👋 **Greets every session** — a friendly greeting with **fresh wording every time**, in the **same language you use** (the model improvises, so it never repeats).
 - 🧑 **Learns your name** — on the first session it asks for your name, then persists it via the `remember_name` tool.
-- 💾 **Remembers across sessions** — the name is stored in your dsh home (`~/.dsh/greeter-name.json`), so later sessions greet you **by name**.
+- 💾 **Remembers across sessions** — the name is stored in your dsh home (`~/.dsh/greeter-store.json`), so later sessions greet you **by name**.
 - ✨ **Greets proactively** — opening a new session makes the agent greet you right away, **no first message needed**. (Set `proactive: false` to only greet after you send a message.)
 - 🎨 **Switch styles by just asking** — say *"greet me like an engineer"* or *"use a playful greeting"* and the plugin changes the style for you — no config editing, no restart.
 
@@ -126,7 +126,20 @@ The config is validated with a Schemastery schema — invalid values **fail plug
 
 ## Compatibility
 
-This plugin hooks dsh's internal agent pipeline (`agent/pre-step` context injection and the message source format). It is verified against dsh `0.1.0-rc.5`-era builds; if dsh changes those internals the plugin may stop greeting until it is updated. The plugin itself carries **no bundled dependencies** — it uses whatever dsh already ships, so installing it adds nothing to your profile's dependency tree.
+This plugin hooks dsh's internal agent pipeline (`agent/pre-step` context injection and the message source format). Verified against the dsh `0.1.0-rc.6`-era builds; if dsh changes those internals the plugin may stop greeting until it is updated. The plugin itself carries **no bundled dependencies** — it uses whatever dsh already ships, so installing it adds nothing to your profile's dependency tree.
+
+### Plugin ↔ dsh version matrix
+
+| dsh version | dsh-plugin-greeter |
+| --- | --- |
+| `0.1.0-rc.6` | ✅ verified (this release) |
+| `0.1.0-rc.5` | ✅ verified (`0.1.x` releases up to `0.1.8`) |
+| `< 0.1.0-rc.5` | ⚠️ untested — internals changed a lot during the rc series |
+
+### Package manager notes
+
+- The repo is **npm-first**: `package-lock.json` is the source of truth, and all build/test/lint commands (`npm run build`, `npm test`, `npm run lint`) use npm. Install with `npm install --legacy-peer-deps` (dsh peer deps are pre-1.0 `rc` ranges that npm's strict resolver rejects).
+- `pnpm` is only used in the [local harness overlay](#development-local-no-publish-needed) workflow because the DeepSeek Harness checkout itself is a pnpm workspace — it is not required to build or test this plugin.
 
 ## Token usage & cost
 

@@ -1,0 +1,2 @@
+# lib/ is a build artifact committed for clone-and-use; don't review/diff it.
+lib/** linguist-generated

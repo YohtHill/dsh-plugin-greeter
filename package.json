@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-greeter",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "A DeepSeek Harness (dsh) plugin that greets the user at the start of every session with varied wording, learns their name on first use, and greets them personally afterward.",
   "keywords": [
     "dsh",
@@ -30,6 +30,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "oxlint src test",
     "prepack": "npm run build"
   },
   "dsh": {
@@ -39,14 +41,26 @@
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-agent": ">=0.1.0-rc.6",
-    "@deepseek-ai/dsh-home-paths": ">=0.0.1-rc.3",
-    "@deepseek-ai/dsh-llm": ">=0.0.1-rc.1",
-    "@deepseek-ai/dsh-settings": ">=0.0.1-rc.1",
+    "@deepseek-ai/dsh-agent": ">=0.1.0-rc.6 <0.2.0",
+    "@deepseek-ai/dsh-attachment": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-brand": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-code-runtime": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-home-paths": ">=0.0.1-rc.3 <0.2.0",
+    "@deepseek-ai/dsh-invariants": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-llm": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-scope": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-session": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-settings": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-system-prompt": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-timeout": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-typert-protocol": ">=0.0.1-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-user-approval": ">=0.0.1-rc.1 <0.2.0",
     "@deepseek-ai/schemastery": "^3.18.1",
-    "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1",
     "@types/node": "^22.0.0",
-    "typescript": "^5.6.0"
+    "oxlint": "^0.16.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.2.0"
   },
   "engines": {
     "node": "^22.19 || >=24"

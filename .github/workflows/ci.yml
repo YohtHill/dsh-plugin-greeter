@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # dsh's core packages are pre-1.0 (rc); npm's default peer resolution
+      # rejects those ranges, so installs need --legacy-peer-deps.
+      - run: npm ci --legacy-peer-deps
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run lint
+      # lib/ is committed so a fresh clone works without building; this step
+      # fails the build if lib/ drifts out of sync with src/.
+      - run: npm run build
+      - run: git diff --exit-code lib/
