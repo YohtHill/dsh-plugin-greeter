@@ -15,7 +15,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 
 **Greets you every session** — fresh wording, your language, your saved style:
 
-![Greeting at session start](docs/demo-greeting.png)
+![Greeting at session start](docs/demo-greeting.gif)
 
 **Switch styles by just asking** — say *"use a playful greeting from now on"* and the plugin saves it for you:
 
