@@ -15,7 +15,7 @@ export const inject = ['agents', 'tools']
 
 /** Plugin configuration accepted from cordis.yml. */
 export interface Config {
-  /** Greeting language, e.g. 'zh', 'en', 'ja'. Omit to let the model choose. */
+  /** Fixed greeting language, e.g. 'zh', 'en', 'ja'. Omit to mirror the language the user writes in. */
   language?: string
   /** Custom greeting phrases; one is chosen per session. Use {name} for the user's name. */
   greetings?: string[]
@@ -61,20 +61,22 @@ function writeStore(file: string, data: Store): void {
 /**
  * Build the greeting instruction injected on the first step of a new session.
  * With a stored name and a configured pool, the exact phrase is chosen by
- * rotation; otherwise the model composes a varied greeting in the configured
- * language.
+ * rotation; otherwise the model improvises a fresh greeting each session,
+ * mirroring the language the user writes in (unless a fixed `language` is set).
  */
 function greetingInstruction(userName: string | undefined, greetingIndex: number, config: ResolvedConfig): string {
-  const languagePhrase = config.language ? ` in ${config.language}` : ''
+  const languageHint = config.language
+    ? ` Greet in ${config.language}.`
+    : ' Greet in the same language the user is using.'
   if (userName === undefined) {
-    return `You are opening a new session. Start with a short, friendly greeting${languagePhrase}, then ask the user for their name. Once they tell you, call the \`remember_name\` tool to store it for future sessions.`
+    return `You are opening a new session. Start with a short, friendly greeting${config.language ? ` in ${config.language}` : ' in the same language as the user'}, then ask the user for their name. Once they tell you, call the \`remember_name\` tool to store it for future sessions.`
   }
   if (config.greetings.length > 0) {
     const template = config.greetings[greetingIndex % config.greetings.length]!
     const greeting = template.replaceAll('{name}', userName)
     return `Open this session by delivering exactly this greeting to the user ${userName}: "${greeting}"`
   }
-  return `You are opening a new session for the user ${userName}. Start with a short, friendly greeting addressed to ${userName}${languagePhrase}. Vary the wording so it is never identical to a previous greeting.`
+  return `You are opening a new session for the user ${userName}. Start with a short, friendly greeting addressed to ${userName}.${languageHint} Keep it natural and conversational — improvise a fresh greeting each session, varying the wording, tone, and phrasing so it never repeats.`
 }
 
 export function apply(ctx: Context, config: Config): void {

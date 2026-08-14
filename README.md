@@ -6,7 +6,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 
 ## Features
 
-- 👋 **Greets every session** — the assistant opens with a friendly greeting, with **different wording each time** (the model generates varied phrasing, so it never repeats verbatim).
+- 👋 **Greets every session** — a friendly greeting with **fresh wording every time**, in the **same language you use** (the model improvises, so it never repeats).
 - 🧑 **Learns your name** — on the first session it asks for your name, then persists it via the `remember_name` tool.
 - 💾 **Remembers across sessions** — the name is stored in your dsh home (`~/.dsh/greeter-name.json`), so later sessions greet you **by name**.
 
@@ -66,9 +66,11 @@ npm run build    # emits lib/ (JS + type declarations)
         nameFile: 'my-name.json'  # custom storage filename inside the dsh home
 ```
 
-- `language` — when set (e.g. `zh`, `en`, `ja`), the model composes the greeting in that language, still varying the wording each session.
+By default the greeting is **adaptive**: the model improvises fresh, conversational wording every session and mirrors the language you write in (English in → English greeting). The options below are optional overrides:
+
+- `language` — force a fixed greeting language (e.g. `zh`, `en`, `ja`) instead of mirroring the user.
 - `greetings` — an explicit pool of greeting phrases; the plugin **rotates** through them so consecutive sessions never repeat. Use `{name}` as a placeholder for the user's name.
-- Both are optional; with neither, the model generates a varied greeting in the session's natural language.
+- `nameFile` — custom storage filename inside the dsh home.
 
 The config is validated with a Schemastery schema — invalid values **fail plugin load loudly** instead of being silently ignored.
 
