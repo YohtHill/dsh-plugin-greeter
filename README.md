@@ -11,6 +11,16 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 - 💾 **Remembers across sessions** — the name is stored in your dsh home (`~/.dsh/greeter-name.json`), so later sessions greet you **by name**.
 - 🎨 **Switch styles by just asking** — say *"greet me like an engineer"* or *"use a playful greeting"* and the plugin changes the style for you — no config editing, no restart.
 
+## Demo
+
+**Greets you every session** — fresh wording, your language, your saved style:
+
+![Greeting at session start](docs/demo-greeting.png)
+
+**Switch styles by just asking** — say *"use a playful greeting from now on"* and the plugin saves it for you:
+
+![Switch style by chat](docs/demo-switch-style.png)
+
 ## Install
 
 ### From npm
