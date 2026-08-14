@@ -165,6 +165,37 @@ export function apply(ctx: Context, config: Config): void {
     },
   }))
 
+  // Tool the model calls when the user asks to change the greeting style, so
+  // switching styles is a conversation instead of a config edit + restart.
+  ctx.tools.register(defineTool({
+    name: 'set_greeting_style',
+    description: 'Change the greeting style for future sessions. Call this whenever the user asks to change how they are greeted (e.g. "use a playful greeting", "greet me like an engineer", "go back to random").',
+    parameters: {
+      style: {
+        type: 'string',
+        required: true,
+        description: `Greeting style: one of ${GREETING_STYLES.join(', ')}, or 'random' to reset to a fresh tone every session.`,
+      },
+    },
+    output: {
+      schema: { type: 'string' },
+      render: (_args, value) => [{ type: 'text', text: value }],
+    },
+    async execute(args) {
+      const style = args.style.trim()
+      const settings = ctx.get('settings')
+      if (style === 'random') {
+        await settings?.mutate(SETTINGS_NAMESPACE, [{ op: 'unset', path: ['style'] }])
+        return 'Reset the greeting style to random — every session will now pick a fresh tone.'
+      }
+      if (!(GREETING_STYLES as readonly string[]).includes(style)) {
+        return `Unknown style "${style}". Pick one of: ${GREETING_STYLES.join(', ')}, or 'random'.`
+      }
+      await settings?.mutate(SETTINGS_NAMESPACE, [{ op: 'set', path: ['style'], value: style }])
+      return `Saved greeting style: ${style}. It applies from your next session.`
+    },
+  }))
+
   // Greet once per session: on the first model step of a new session, inject
   // a greeting instruction so the model opens with the configured wording.
   const greeted = new WeakSet<Agent>()

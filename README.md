@@ -9,6 +9,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 - 👋 **Greets every session** — a friendly greeting with **fresh wording every time**, in the **same language you use** (the model improvises, so it never repeats).
 - 🧑 **Learns your name** — on the first session it asks for your name, then persists it via the `remember_name` tool.
 - 💾 **Remembers across sessions** — the name is stored in your dsh home (`~/.dsh/greeter-name.json`), so later sessions greet you **by name**.
+- 🎨 **Switch styles by just asking** — say *"greet me like an engineer"* or *"use a playful greeting"* and the plugin changes the style for you — no config editing, no restart.
 
 ## Install
 
@@ -40,6 +41,12 @@ After installing, **restart dsh**, then:
 2. Send any message (e.g. `hi`).
 3. The model greets you in your language with a fresh tone each time, and on the first session it **asks your name** and remembers it via the `remember_name` tool.
 4. Later sessions greet you **by name**.
+
+**Switching styles is a conversation.** In any session, just say:
+
+> *"从今天起用俏皮的风格问候我"* / *"greet me like an engineer from now on"* / *"回到随机风格吧"* / *"go back to random"*
+
+The plugin calls its `set_greeting_style` tool, saves the choice, and it applies from the **next** session. Styles: `minimal`, `warm`, `practical`, `engineering`, `playful`, `calm`, or `random`.
 
 > ⚠️ The greeting appears on the **first message of a new session** — it does not pop up when you just open the app. If you don't see it, make sure you created a new session and sent a message.
 
@@ -80,7 +87,7 @@ npm run build                    # emits lib/ (JS + type declarations)
 
 ### Configuration (optional)
 
-No configuration is required — the default is adaptive (it follows your language and improvises a fresh greeting every session). To override, edit the **profile patch file** (`~/.dsh/profiles/web/cordis.patch.yml` for the `web` profile, or your profile's equivalent) and add a `config` block:
+No configuration is required — the default is adaptive (it follows your language and improvises a fresh greeting every session). The easiest way to customize is to **just ask in chat** (see [Usage](#usage) — the plugin saves your choice for you). If you prefer editing YAML, edit the **profile patch file** (`~/.dsh/profiles/web/cordis.patch.yml` for the `web` profile, or your profile's equivalent) and add a `config` block:
 
 ```yaml
 - insert:
