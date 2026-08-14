@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-greeter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A DeepSeek Harness (dsh) plugin that greets the user at the start of every session with varied wording, learns their name on first use, and greets them personally afterward.",
   "keywords": [
     "dsh",
@@ -35,15 +35,6 @@
     "bundle": {
       "patch": "./cordis.patch.yml"
     }
-  },
-  "peerDependencies": {
-    "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-agent": ">=0.1.0-rc.5",
-    "@deepseek-ai/dsh-home-paths": ">=0.0.1-rc.3",
-    "@deepseek-ai/dsh-llm": ">=0.0.1-rc.1",
-    "@deepseek-ai/dsh-settings": ">=0.0.1-rc.1",
-    "@deepseek-ai/schemastery": "^3.18.1",
-    "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

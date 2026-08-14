@@ -12,7 +12,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plug
 
 ## Install
 
-### From npm (once published)
+### From npm
 
 ```sh
 dsh plugin --profile web add dsh-plugin-greeter
@@ -31,6 +31,19 @@ dsh plugin --profile web add .
 ```
 
 > dsh's core packages are still pre-1.0 (`rc`). If you build from source yourself, use `npm install --legacy-peer-deps` (npm's default peer resolution rejects the `rc` ranges) and then `npm run build` before adding.
+
+## Usage
+
+After installing, **restart dsh**, then:
+
+1. Start a **new session**.
+2. Send any message (e.g. `hi`).
+3. The model greets you in your language with a fresh tone each time, and on the first session it **asks your name** and remembers it via the `remember_name` tool.
+4. Later sessions greet you **by name**.
+
+> ⚠️ The greeting appears on the **first message of a new session** — it does not pop up when you just open the app. If you don't see it, make sure you created a new session and sent a message.
+
+To verify the plugin is loaded: open **Settings → Plugins → Plugin list**, search `greeter`, and confirm the entry shows **Enabled**.
 
 ## Development (local, no publish needed)
 
@@ -67,6 +80,8 @@ npm run build                    # emits lib/ (JS + type declarations)
 
 ### Configuration (optional)
 
+No configuration is required — the default is adaptive (it follows your language and improvises a fresh greeting every session). To override, edit the **profile patch file** (`~/.dsh/profiles/web/cordis.patch.yml` for the `web` profile, or your profile's equivalent) and add a `config` block:
+
 ```yaml
 - insert:
     - id: greeter
@@ -88,6 +103,10 @@ By default the greeting is **adaptive**: the model improvises fresh, conversatio
 - `nameFile` — custom storage filename inside the dsh home.
 
 The config is validated with a Schemastery schema — invalid values **fail plugin load loudly** instead of being silently ignored.
+
+## Compatibility
+
+This plugin hooks dsh's internal agent pipeline (`agent/pre-step` context injection and the message source format). It is verified against dsh `0.1.0-rc.5`-era builds; if dsh changes those internals the plugin may stop greeting until it is updated. The plugin itself carries **no bundled dependencies** — it uses whatever dsh already ships, so installing it adds nothing to your profile's dependency tree.
 
 ## Publishing
 

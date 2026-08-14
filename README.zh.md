@@ -12,7 +12,7 @@
 
 ## 安装
 
-### 从 npm 安装（发布后）
+### 从 npm 安装
 
 ```sh
 dsh plugin --profile web add dsh-plugin-greeter
@@ -31,6 +31,19 @@ dsh plugin --profile web add .
 ```
 
 > dsh 的核心包仍是 pre-1.0（`rc`）。如果你要自己构建源码，请用 `npm install --legacy-peer-deps`（npm 默认的 peer 解析会拒绝 `rc` 版本区间），然后 `npm run build` 再添加。
+
+## 使用方法
+
+安装后**重启 dsh**，然后：
+
+1. **新建会话**。
+2. 随便发一条消息（比如 `hi`）。
+3. 模型会用你的语言、每次不同的语气问候你；**第一次会话会主动问你的名字**，并通过 `remember_name` 工具记住。
+4. 之后的会话都会**按名字**问候你。
+
+> ⚠️ 问候出现在**新会话的第一条消息**时——不是打开应用就自动弹出。如果没看到问候，确认是否新建了会话并发过消息。
+
+验证插件是否已加载：打开 **设置 → 插件 → 插件列表**，搜索 `greeter`，看到条目显示 **已启用** 即可。
 
 ## 开发调试（本地，无需发布）
 
@@ -67,6 +80,8 @@ npm run build                    # 生成 lib/（JS + 类型声明）
 
 ### 可选配置
 
+无需任何配置——默认是**自适应**的（跟随你的语言、每次即兴生成全新问候）。如需覆盖，编辑 **profile 补丁文件**（`web` profile 是 `~/.dsh/profiles/web/cordis.patch.yml`），加上 `config` 块：
+
 ```yaml
 - insert:
     - id: greeter
@@ -88,6 +103,10 @@ npm run build                    # 生成 lib/（JS + 类型声明）
 - `nameFile` — 自定义 dsh home 内的存储文件名。
 
 配置会通过 Schemastery schema 校验——配置非法会**加载时立即报错**，而不是被静默忽略。
+
+## 兼容性
+
+本插件钩住了 dsh 的内部 agent 管道（`agent/pre-step` 上下文注入与消息 source 格式）。已在 dsh `0.1.0-rc.5` 一代的版本上验证；如果 dsh 改动这些内部接口，插件可能停止问候，直到更新。插件本身**不捆绑任何依赖**——它直接使用 dsh 自带的能力，安装不会给你的 profile 增加任何依赖树负担。
 
 ## 发布
 
