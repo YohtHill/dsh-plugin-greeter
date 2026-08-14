@@ -7,9 +7,15 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      # Keep checkout line endings as-is (LF) so the lib/ drift check below
+      # compares tsc output against the committed files byte-for-byte.
+      - run: git config core.autocrlf false
       - uses: actions/setup-node@v4
         with:
           node-version: 22

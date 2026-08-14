@@ -62,15 +62,18 @@ interface Store {
   greetingIndex?: number
 }
 
+/** Logging hook: module-level helpers cannot see ctx.logger, so callers pass it. */
+type Warn = (message: string) => void
+
 /** Read the store; undefined when nothing is stored yet. */
-function readStore(file: string): Store | undefined {
+export function readStore(file: string, warn: Warn = console.warn): Store | undefined {
   try {
     return JSON.parse(readFileSync(file, 'utf8')) as Store
   } catch (error) {
     // A missing file is the normal first-run state; anything else is corruption
     // worth surfacing (and backing up) instead of silently losing the name.
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
-    console.warn(`greeter: store "${file}" is corrupted; backing it up and starting fresh: ${String(error)}`)
+    warn(`greeter: store "${file}" is corrupted; backing it up and starting fresh: ${String(error)}`)
     try {
       renameSync(file, `${file}.corrupt-${Date.now()}`)
     } catch {
@@ -81,7 +84,7 @@ function readStore(file: string): Store | undefined {
 }
 
 /** Persist the store atomically (tmp + rename) so a crash never leaves half a JSON file. */
-function writeStore(file: string, data: Store): void {
+export function writeStore(file: string, data: Store): void {
   mkdirSync(dirname(file), { recursive: true })
   const tmp = `${file}.tmp`
   writeFileSync(tmp, JSON.stringify(data, null, 2))
@@ -89,14 +92,34 @@ function writeStore(file: string, data: Store): void {
 }
 
 /**
+ * One-time migration from the legacy store name (`greeter-name.json`) to
+ * `greeter-store.json`. Copies the data and keeps the old file as a
+ * `.migrated` backup; idempotent — a second call is a no-op.
+ */
+export function migrateLegacyStore(home: string, warn: Warn = console.warn): void {
+  const file = join(home, 'greeter-store.json')
+  if (existsSync(file)) return
+  const legacy = join(home, 'greeter-name.json')
+  if (!existsSync(legacy)) return
+  try {
+    mkdirSync(home, { recursive: true })
+    writeFileSync(file, readFileSync(legacy, 'utf8'))
+    renameSync(legacy, `${legacy}.migrated`)
+  } catch (error) {
+    warn(`greeter: legacy store migration failed: ${String(error)}`)
+  }
+}
+
+/**
  * Sanitize a user-supplied name before it is stored or injected into a prompt:
- * strip line breaks, cap the length, and drop empties. A name is data, never
- * instructions — this keeps `remember_name` from becoming a prompt-injection
- * surface that persists into every future session.
+ * strip line breaks and quote characters (", `), cap the length, and drop
+ * empties. A name is data, never instructions — this keeps `remember_name`
+ * from becoming a prompt-injection surface that persists into every future
+ * session.
  */
 export function sanitizeName(name: string | undefined): string | undefined {
   if (name === undefined) return undefined
-  const cleaned = name.replace(/[\r\n]+/g, ' ').trim().slice(0, 50)
+  const cleaned = name.replace(/[\r\n"`]+/g, ' ').trim().slice(0, 50)
   return cleaned === '' ? undefined : cleaned
 }
 
@@ -152,6 +175,10 @@ export function greetingInstruction(userName: string | undefined, greetingIndex:
 }
 
 export function apply(ctx: Context, config: Config): void {
+  // Route module-level warnings through the dsh logger so they appear in dsh
+  // logs instead of the process console.
+  const warn = (message: string): void => ctx.logger.warn(message)
+
   // Expose the configuration as a durable, UI-editable settings section. The
   // registered section overrides the cordis.yml `config` when both are set.
   ctx.inject(['settings'], (settingsCtx) => {
@@ -172,23 +199,10 @@ export function apply(ctx: Context, config: Config): void {
       proactive: merged.proactive ?? true,
     }
   }
-  const storeFileOf = (resolved: ResolvedConfig): string => {
-    const file = join(resolveDshHome(), resolved.nameFile)
-    // One-time migration: the store was previously named greeter-name.json.
-    if (resolved.nameFile === 'greeter-store.json' && !existsSync(file)) {
-      const legacy = join(resolveDshHome(), 'greeter-name.json')
-      if (existsSync(legacy)) {
-        try {
-          mkdirSync(dirname(file), { recursive: true })
-          writeFileSync(file, readFileSync(legacy, 'utf8'))
-          renameSync(legacy, `${legacy}.migrated`)
-        } catch (error) {
-          console.warn(`greeter: legacy store migration failed: ${String(error)}`)
-        }
-      }
-    }
-    return file
-  }
+  const storeFileOf = (resolved: ResolvedConfig): string => join(resolveDshHome(), resolved.nameFile)
+
+  // One-time migration from the legacy store name, at mount time (idempotent).
+  if (effective().nameFile === 'greeter-store.json') migrateLegacyStore(resolveDshHome(), warn)
 
   // Tool the model calls once the user reveals their name, so the next
   // session can greet them personally.
@@ -206,7 +220,7 @@ export function apply(ctx: Context, config: Config): void {
       const name = sanitizeName(args.name)
       if (name === undefined) return 'That name looks empty — please ask the user for it again.'
       const storeFile = storeFileOf(effective())
-      writeStore(storeFile, { ...readStore(storeFile), name })
+      writeStore(storeFile, { ...readStore(storeFile, warn), name })
       return `Saved the user's name as ${name}.`
     },
   }))
@@ -235,7 +249,10 @@ export function apply(ctx: Context, config: Config): void {
       }
       if (style === 'random') {
         await settings.mutate(SETTINGS_NAMESPACE, [{ op: 'unset', path: ['style'] }])
-        return 'Reset the greeting style to random — every session will now pick a fresh tone.'
+        const pinned = config.style !== undefined
+          ? ` Note: cordis.yml pins style '${config.style}', which still takes priority — remove it there to go random.`
+          : ''
+        return `Reset the greeting style to random — every session will now pick a fresh tone.${pinned}`
       }
       if (!(GREETING_STYLES as readonly string[]).includes(style)) {
         return `Unknown style "${style}". Pick one of: ${GREETING_STYLES.join(', ')}, or 'random'.`
@@ -253,7 +270,7 @@ export function apply(ctx: Context, config: Config): void {
     let text: string
     try {
       const storeFile = storeFileOf(resolved)
-      const store = readStore(storeFile)
+      const store = readStore(storeFile, warn)
       const userName = sanitizeName(store?.name)
       const greetingIndex = store?.greetingIndex ?? 0
       if (userName !== undefined && resolved.greetings.length > 0) {

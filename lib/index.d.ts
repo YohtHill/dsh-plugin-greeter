@@ -32,11 +32,29 @@ export interface ResolvedConfig {
     nameFile: string;
     proactive: boolean;
 }
+/** Durable store content (name + greeting rotation position). */
+interface Store {
+    name?: string;
+    greetingIndex?: number;
+}
+/** Logging hook: module-level helpers cannot see ctx.logger, so callers pass it. */
+type Warn = (message: string) => void;
+/** Read the store; undefined when nothing is stored yet. */
+export declare function readStore(file: string, warn?: Warn): Store | undefined;
+/** Persist the store atomically (tmp + rename) so a crash never leaves half a JSON file. */
+export declare function writeStore(file: string, data: Store): void;
+/**
+ * One-time migration from the legacy store name (`greeter-name.json`) to
+ * `greeter-store.json`. Copies the data and keeps the old file as a
+ * `.migrated` backup; idempotent — a second call is a no-op.
+ */
+export declare function migrateLegacyStore(home: string, warn?: Warn): void;
 /**
  * Sanitize a user-supplied name before it is stored or injected into a prompt:
- * strip line breaks, cap the length, and drop empties. A name is data, never
- * instructions — this keeps `remember_name` from becoming a prompt-injection
- * surface that persists into every future session.
+ * strip line breaks and quote characters (", `), cap the length, and drop
+ * empties. A name is data, never instructions — this keeps `remember_name`
+ * from becoming a prompt-injection surface that persists into every future
+ * session.
  */
 export declare function sanitizeName(name: string | undefined): string | undefined;
 /**
@@ -48,3 +66,4 @@ export declare function sanitizeName(name: string | undefined): string | undefin
  */
 export declare function greetingInstruction(userName: string | undefined, greetingIndex: number, config: ResolvedConfig): string;
 export declare function apply(ctx: Context, config: Config): void;
+export {};
